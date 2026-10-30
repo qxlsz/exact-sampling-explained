@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="An interactive explanation of why maximizing zero-query returns can increase the expected information cost of exact sampling.">
+  <meta name="referrer" content="no-referrer">
+  <title>When early stopping costs more | Exact sampling</title>
+  <link rel="stylesheet" href="./style.css">
+  <script src="./math.js" defer></script>
+  <script src="./explanation.js" defer></script>
+  <script src="./app.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to explanation</a>
+  <header class="site-header container">
+    <a class="wordmark" href="#main">Exact sampling</a>
+    <nav aria-label="On this page"><a href="#bounds">The result</a><a href="#scope">Assumptions</a></nav>
+  </header>
+  <main id="main">
+    <section class="hero container" aria-labelledby="hero-title">
+      <div class="hero-intro">
+        <h1 id="hero-title">Stopping early<br>can cost more.</h1>
+        <div class="hero-copy">
+          <p class="lead">Maximizing immediate returns can make exact sampling inspect more inputs.</p>
+          <div class="actions"><button class="button" type="button" id="play" disabled>Play path</button><button class="button quiet" type="button" id="pause" disabled>Pause</button></div>
+        </div>
+      </div>
+      <div class="controls" aria-label="Example parameters">
+        <div class="control"><label for="n">Coordinates <span class="math">n</span> <output id="n-value" for="n">9</output></label><input type="range" id="n" name="coordinates" min="2" max="32" value="9" step="1" disabled></div>
+        <div class="control"><label for="k">Read threshold <span class="math">k</span> <output id="k-value" for="k">5</output></label><input type="range" id="k" name="threshold" min="1" max="9" value="5" step="1" disabled></div>
+        <div class="control draw-control"><label for="draw">Shared draw <span class="math">u</span> <output id="u-value" for="draw">0.750</output></label><input type="range" id="draw" name="draw" min="0" max="999" value="750" step="1" disabled><button type="button" class="text-button" id="randomize" disabled>Randomize</button></div>
+      </div>
+      <figure class="query-diagram" aria-label="Query paths at the all-zero target">
+        <div class="lane" id="baseline-lane">
+          <div class="lane-name"><h2>Minimum expected queries</h2><p><span id="baseline-stop">20%</span> return immediately</p></div>
+          <div class="path"><div class="probability-bar" aria-hidden="true"><span class="stop-segment" id="baseline-stop-bar"></span><span class="draw-marker" id="baseline-marker"></span></div><div class="query-cells" id="baseline-cells" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div><p class="path-status" id="baseline-status">One query on continuation</p></div>
+          <div class="lane-cost"><output id="baseline-cost">0.80</output><span>expected queries</span></div>
+        </div>
+        <div class="lane constrained" id="constrained-lane">
+          <div class="lane-name"><h2>Maximum immediate returns</h2><p><span id="constrained-stop">55.6%</span> return immediately</p></div>
+          <div class="path"><div class="probability-bar" aria-hidden="true"><span class="stop-segment" id="constrained-stop-bar"></span><span class="draw-marker" id="constrained-marker"></span></div><div class="query-cells" id="constrained-cells" aria-hidden="true"><span>1</span><span>2</span><span>3</span><span>4</span><span>5</span><span>6</span><span>7</span><span>8</span><span>9</span></div><p class="path-status" id="constrained-status">Five queries on continuation</p></div>
+          <div class="lane-cost"><output id="constrained-cost">2.22</output><span>expected queries</span></div>
+        </div>
+        <figcaption>At θ = 0, η = 0.1. Shading means no query. Motion is not elapsed time.</figcaption>
+      </figure>
+      <p class="live-summary" id="animation-status" role="status" aria-live="polite">Choose a draw, then play both paths.</p>
+      <noscript><p class="no-script">The default example is n = 9, k = 5, η = 0.1. Expected costs are 0.8 and 20/9 queries. Enable JavaScript to adjust the controls and trace a draw.</p></noscript>
+    </section>
+    <section class="identity section-space" aria-labelledby="identity-title">
+      <div class="container identity-layout">
+        <h2 id="identity-title">Count the<br>remaining work.</h2>
+        <div class="identity-body">
+          <p class="lead">The runs that continue have to compensate for the ones that stop.</p>
+          <div class="equation" aria-label="Expected queries equal continuation probability times queries on continuation"><span id="continue-value">0.444</span><span>×</span><span id="query-value">5</span><span>=</span><strong id="expected-value">2.222</strong></div>
+          <div class="equation-labels"><span>Probability of continuing</span><span>Reads if continuing</span><span>Expected reads</span></div>
+          <p class="ratio-sentence">Here, the price is <strong id="ratio-value">2.778</strong> times the minimum expected cost.</p>
+          <p class="small-copy">Both policies return output 1 with probability 0.9 at this target. The output law stays fixed.</p>
+        </div>
+      </div>
+    </section>
+    <section class="bounds container section-space" id="bounds" aria-labelledby="bounds-title">
+      <div class="section-heading"><h2 id="bounds-title">A dimension-dependent price.</h2><p class="lead">An exact family, a general bound, and one unresolved gap.</p></div>
+      <figure class="bound-figure">
+        <svg id="ratio-chart" viewBox="0 0 800 350" role="img" aria-labelledby="chart-title chart-desc">
+          <title id="chart-title">Exact cost ratio as the read threshold changes</title><desc id="chart-desc">For n = 9, the ratio k times (10 minus k), divided by 9, peaks at k = 5 with value 25/9.</desc>
+          <g id="chart-grid"><path d="M64 250H760 M64 145H760 M64 40H760" class="chart-grid"></path></g>
+          <path id="ratio-line" class="ratio-line" d="M64 183.10L151 131.06L238 93.89L325 71.59L412 64.16L499 71.59L586 93.89L673 131.06L760 183.10"></path>
+          <circle id="ratio-point" class="ratio-point" cx="412" cy="64.16" r="6"></circle>
+          <g id="chart-labels" class="chart-labels"><text x="64" y="335">Read threshold k</text><text x="64" y="30">Query-cost ratio</text></g>
+        </svg>
+        <figcaption>Lower family: k(n − k + 1)/n. The highlighted point follows the controls above.</figcaption>
+      </figure>
+      <div class="bound-summary">
+        <p class="bound-expression" aria-label="The worst-case price lies between the constructed lower bound and the universal upper bound"><output id="lower-value">2.778</output><span>≤ ρ<sub id="bound-n">9</sub> ≤</span><output id="upper-value">2.778</output></p>
+        <p id="sharpness">Odd dimension: the lower and upper bounds coincide.</p>
+      </div>
+      <p class="small-copy">ρ is the worst-case constrained optimum divided by the unrestricted optimum, over finite output laws and targets with positive unrestricted cost. These are theorem values, not speed measurements.</p>
+    </section>
+    <section class="categorical section-space" aria-labelledby="categorical-title">
+      <div class="container categorical-layout">
+        <div><h2 id="categorical-title">Structure changes<br>the answer.</h2><p class="lead">Independent positive categorical weight intervals have a dimension-free bound.</p></div>
+        <div class="categorical-result"><p class="categorical-number" aria-label="At most twice the optimal expected query count">≤ 2</p><p>the optimal expected query count</p><p class="small-copy">A two-sided Gumbel priority sampler attains maximum zero-query mass. Two is an upper bound, not a proved sharp categorical price.</p></div>
+      </div>
+    </section>
+    <section class="scope container section-space" id="scope" aria-labelledby="scope-title">
+      <div class="scope-heading"><h2 id="scope-title">Read the assumptions.</h2><p class="lead">Exact laws. Unit-cost coordinate queries. Ideal arithmetic.</p></div>
+      <div class="disclosures">
+        <details><summary>What does the demonstration represent?</summary><div class="detail-body"><p>For n coordinates θᵢ in [0,1], the two-output family is</p><p class="formula">Pθ(1) = η + (1 − 2η) max((k − 1)/n, 1 − ∑θᵢ/n).</p><p>Here η = 0.1 and θ = 0. The unrestricted target certificate returns without a query with probability 0.2; otherwise it queries a uniformly chosen coordinate. The maximal-common certificate returns with probability 0.2 + 0.8(k − 1)/n; otherwise it queries a uniformly chosen k-subset.</p><p>The shared draw chooses the branch and output. Independent subset randomness is represented by the displayed subset. The diagram omits the residual completion that makes the policies exact away from this target. It is not a universally exact sampler implementation. Randomize uses a finite display grid; the theorem uses continuous randomness.</p></div></details>
+        <details><summary>What is free, and what is counted?</summary><div class="detail-body"><p>Each previously unknown coordinate costs one query to reveal exactly. Computation, randomness and the required envelope metadata are free in this oracle model. Policies must produce the specified finite output law at every feasible input.</p><p>The pointwise optimum can choose a different globally exact policy for each target. The construction is an existence result and does not claim efficient computation of arbitrary envelopes. Query counts do not imply latency, hardware or floating-point guarantees.</p></div></details>
+        <details><summary>What do the bounds actually say?</summary><div class="detail-body"><p>The general upper bound is (n + 1)²/(4n). Maximizing the displayed lower family gives floor((n + 1)²/4)/n. They coincide for odd n; their difference is 1/(4n) for even n. A separate sharper argument gives ρ₂ = 1.</p><p>The categorical factor-two result assumes independent intervals with finite positive endpoints and equal query costs. It is a separate structured class. It does not say the general price is two.</p></div></details>
+        <details><summary>Does this depend on target-specific policies?</summary><div class="detail-body"><p>A separate construction compares single policies exact on the entire domain. Under a uniform product prior, imposing maximal no-query mass can have a linear average-query penalty, although an exact baseline reads at most two coordinates per execution and one in expectation.</p><p>That example uses a different continuous binary family. It is not the animation above. Its proof uses a classical nonnegative-query obstruction, and correctness includes boundary inputs of prior measure zero.</p></div></details>
+      </div>
+    </section>
+  </main>
+  <footer class="container research-footer" id="references">
+    <div><h2>Sources and status.</h2><p>The Query Cost of Maximal Early Stopping in Exact Sampling.</p><p class="small-copy">Unpublished research manuscript. This explanation is AI-assisted.</p></div>
+    <div class="reference-list"><p>Selected mathematical foundations</p><a href="https://doi.org/10.1016/j.ijar.2019.03.008" rel="noreferrer">Montes, Miranda &amp; Vicig, 2019<span>Belief-function capacity programs</span></a><a href="https://arxiv.org/abs/1411.7280" rel="noreferrer">Kaniewski, Lee &amp; de Wolf, 2015<span>Query complexity in expectation</span></a><a href="https://proceedings.neurips.cc/paper_files/paper/2014/hash/937debc749f041eb5700df7211ac795c-Abstract.html" rel="noreferrer">Maddison, Tarlow &amp; Minka, 2014<span>A* sampling</span></a><p class="small-copy">The demonstration runs locally. No analytics.</p></div>
+  </footer>
+</body>
+</html>
